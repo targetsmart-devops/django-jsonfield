@@ -82,7 +82,7 @@ class JSONFieldBase(six.with_metaclass(SubfieldBase, models.Field)):
                         try:
                             return json.loads(value, **self.load_kwargs)
                         except ValueError:
-                            raise ValidationError(_("Enter valid JSON"))
+                            raise ValidationError(_("Enter valid JSON. Found {}".format(value)))
 
         except AttributeError:
             # south fake meta class doesn't create proper attributes
