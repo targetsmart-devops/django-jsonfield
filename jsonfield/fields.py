@@ -101,7 +101,12 @@ class JSONFieldBase(six.with_metaclass(SubfieldBase, models.Field)):
         """Convert JSON object to a string"""
         if self.null and value is None:
             return None
-        return json.dumps(value, **self.dump_kwargs)
+        if isinstance(value, bytes):
+            # We may end up with bytes values from legacy MyTS Py2 db
+            # migrations. If so, decode assuming utf8
+            value = value.decode('utf8', errors='ignore')
+
+        return json.dumps(value, ensure_ascii=False, **self.dump_kwargs)
 
     def value_to_string(self, obj):
         value = self.value_from_object(obj, dump=False)
@@ -114,7 +119,12 @@ class JSONFieldBase(six.with_metaclass(SubfieldBase, models.Field)):
         return self.dumps_for_display(value) if dump else value
 
     def dumps_for_display(self, value):
-        return json.dumps(value, **self.dump_kwargs)
+        if isinstance(value, bytes):
+            # We may end up with bytes values from legacy MyTS Py2 db
+            # migrations. If so, decode assuming utf8
+            value = value.decode('utf8', errors='ignore')
+
+        return json.dumps(value, ensure_ascii=False, **self.dump_kwargs)
 
     def formfield(self, **kwargs):
 
@@ -158,6 +168,11 @@ class JSONField(JSONFieldBase, models.TextField):
     def dumps_for_display(self, value):
         kwargs = {"indent": 2}
         kwargs.update(self.dump_kwargs)
+        if isinstance(value, bytes):
+            # We may end up with bytes values from legacy MyTS Py2 db
+            # migrations. If so, decode assuming utf8
+            value = value.decode('utf8', errors='ignore')
+
         return json.dumps(value, ensure_ascii=False, **kwargs)
 
 
